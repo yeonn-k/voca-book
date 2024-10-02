@@ -1,3 +1,4 @@
+import useLocalStorage from '../../hooks/useLocalStorage';
 import BasicButton from '../buttons/basicButtons/BasicButton';
 import InputText from '../form/inputText';
 import useInputValue from '../../hooks/useInputValue';
@@ -23,19 +24,24 @@ const AddOrEditWord = ({
     idx,
 }: ModalProps) => {
     const [newWord, setNewWord] = useInputValue();
+    const { setLocalStorage, getLocalStorage } = useLocalStorage('words');
 
     const handleTheWord = (idx?: number, newWord?: string) => {
+        let updatedWords: string[] = [...words];
+
         if (type === 'add' && newWord) {
-            setWords((prev) => [...prev, newWord]);
-            closeModal();
-        }
-        if (type === 'update' && idx && newWord) {
-            setWords(
-                words.map((word, index) => {
-                    if (index === idx) return newWord;
-                    return word;
-                })
+            updatedWords = [...words, newWord];
+            setWords(updatedWords);
+        } else if (type === 'update' && idx !== undefined && newWord) {
+            updatedWords = words.map((word, index) =>
+                index === idx ? newWord : word
             );
+            setWords(updatedWords);
+        }
+
+        // 로컬 스토리지 업데이트
+        if (updatedWords) {
+            setLocalStorage(updatedWords);
             closeModal();
         }
     };

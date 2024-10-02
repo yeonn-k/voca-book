@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 import BasicButton from './components/buttons/basicButtons/BasicButton';
@@ -10,23 +10,24 @@ import useModalState from './hooks/useModalState';
 import AddOrEditWord from './components/AddOrEditWord/AddOrEditWord';
 import ModalContainer from './components/modal/ModalContainer';
 import RemoveWord from './components/removeWord/RemoveWord';
+import useLocalStorage from './hooks/useLocalStorage';
 
 function App() {
-    const [words, setWords] = useState<string[]>([
-        'apple',
-        'banana',
-        'orange',
-        'strawberry',
-        'melon',
-        'grapes',
-    ]);
+    const [words, setWords] = useState<string[]>([]);
 
     const [filterWord, setFilterWord] = useInputValue();
-    const [selected, setSelected] = useState(0);
     const { isOpen, toggleModal, closeModal, openModal } = useModalState();
+    const { setLocalStorage, getLocalStorage } = useLocalStorage('words');
+    const [selected, setSelected] = useState(0);
     const [actionName, setActionName] = useState('');
 
     const filteredWords = words.filter((word) => word.includes(filterWord));
+
+    useEffect(() => {
+        const result = getLocalStorage();
+        if (result === null) setWords([]);
+        else setWords(result);
+    }, []);
 
     const handleAddWordModal = () => {
         setActionName('add');
@@ -42,7 +43,11 @@ function App() {
     };
 
     const removeWord = (idx: number) => {
-        setWords(words.filter((word: string, index: number) => index !== idx));
+        const newWords = words.filter(
+            (word: string, index: number) => index !== idx
+        );
+        setWords(newWords);
+        setLocalStorage(newWords);
     };
     const handleRemoveWordModal = (idx: number) => {
         setActionName('remove');
