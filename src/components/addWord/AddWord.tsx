@@ -5,14 +5,16 @@ import useInputValue from '../../hooks/useInputValue';
 interface ModalProps {
     isOpen: boolean;
     closeModal: () => void;
+    setWords: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const AddWord = ({ isOpen, closeModal }: ModalProps) => {
+const AddWord = ({ isOpen, closeModal, setWords }: ModalProps) => {
     const [newWord, setNewWord] = useInputValue();
 
     const saveTheWord = () => {
         // 저장하는 로직 작성
         closeModal();
+        setWords((prev) => [...prev, newWord]);
     };
 
     return (

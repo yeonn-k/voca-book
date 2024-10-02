@@ -45,7 +45,11 @@ function App() {
                 <main className="font-gowun-bold mt-4 ">
                     {isOpen ? (
                         <ModalContainer>
-                            <AddWord isOpen={isOpen} closeModal={closeModal} />
+                            <AddWord
+                                isOpen={isOpen}
+                                closeModal={closeModal}
+                                setWords={setWords}
+                            />
                         </ModalContainer>
                     ) : (
                         ''
