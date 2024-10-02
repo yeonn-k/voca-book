@@ -7,8 +7,9 @@ import WordCard from './components/wordCard/WordCard';
 
 import useInputValue from './hooks/useInputValue';
 import useModalState from './hooks/useModalState';
-import AddWord from './components/addWord/AddWord';
+import AddOrEditWord from './components/AddOrEditWord/AddOrEditWord';
 import ModalContainer from './components/modal/ModalContainer';
+import RemoveWord from './components/removeWord/RemoveWord';
 
 function App() {
     const [words, setWords] = useState<string[]>([
@@ -21,9 +22,35 @@ function App() {
     ]);
 
     const [filterWord, setFilterWord] = useInputValue();
+    const [selected, setSelected] = useState(0);
     const { isOpen, toggleModal, closeModal, openModal } = useModalState();
+    const [actionName, setActionName] = useState('');
 
     const filteredWords = words.filter((word) => word.includes(filterWord));
+
+    const handleAddWordModal = () => {
+        setActionName('add');
+        openModal();
+    };
+
+    const handleUpdateWordModal = (idx?: number) => {
+        setActionName('update');
+        if (idx !== undefined) {
+            setSelected(idx);
+        }
+        openModal();
+    };
+
+    const removeWord = (idx: number) => {
+        setWords(words.filter((word: string, index: number) => index !== idx));
+    };
+    const handleRemoveWordModal = (idx: number) => {
+        setActionName('remove');
+        if (idx !== undefined) {
+            setSelected(idx);
+        }
+        openModal();
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -33,7 +60,11 @@ function App() {
                         단어 목록
                     </h1>
                     <div className="absolute right-4">
-                        <BasicButton text="추가" onClick={toggleModal} />
+                        <BasicButton
+                            text="추가"
+                            onClick={handleAddWordModal}
+                            action="add"
+                        />
                     </div>
                 </header>
                 <section>
@@ -45,20 +76,66 @@ function App() {
                 </section>
 
                 <main className="font-gowun-bold mt-4 ">
-                    {isOpen ? (
+                    {actionName === 'add' && isOpen ? (
                         <ModalContainer>
-                            <AddWord
+                            <AddOrEditWord
                                 isOpen={isOpen}
                                 closeModal={closeModal}
                                 setWords={setWords}
+                                text="저장"
+                                type="add"
+                                onClick={handleAddWordModal}
+                                words={words}
+                            />
+                        </ModalContainer>
+                    ) : (
+                        ''
+                    )}
+                    {actionName === 'update' && isOpen ? (
+                        <ModalContainer>
+                            <AddOrEditWord
+                                isOpen={isOpen}
+                                closeModal={closeModal}
+                                setWords={setWords}
+                                text="수정"
+                                type="update"
+                                onClick={handleUpdateWordModal}
+                                words={words}
+                                idx={selected}
+                            />
+                        </ModalContainer>
+                    ) : (
+                        ''
+                    )}
+                    {actionName === 'remove' && isOpen ? (
+                        <ModalContainer>
+                            <RemoveWord
+                                word={words[selected]}
+                                isOpen={isOpen}
+                                idx={selected}
+                                removeWord={removeWord}
+                                closeModal={closeModal}
+                                type="update"
                             />
                         </ModalContainer>
                     ) : (
                         ''
                     )}
                     <ul className="grid grid-cols-3 gap-2.5">
-                        {filteredWords.map((word) => {
-                            return <WordCard word={word}></WordCard>;
+                        {filteredWords.map((word, idx) => {
+                            return (
+                                <WordCard
+                                    key={idx}
+                                    word={word}
+                                    idx={idx}
+                                    handleUpdateWordModal={
+                                        handleUpdateWordModal
+                                    }
+                                    handleRemoveWordModal={
+                                        handleRemoveWordModal
+                                    }
+                                />
+                            );
                         })}
                     </ul>
                 </main>
@@ -68,3 +145,5 @@ function App() {
 }
 
 export default App;
+
+// 한글 초성 검색, 문자 set 도 알아보자??
