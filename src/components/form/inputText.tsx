@@ -21,7 +21,7 @@ const InputText = ({
         <input
             type="text"
             name={name}
-            className="w-full border-solid border-sky-100 border-2 px-2 py-1 outline-none"
+            className="w-full border-solid border-sky-100 border-2 px-2 py-1 outline-none mb-4 rounded-lg"
             placeholder={placeholder}
             value={value}
             onChange={handleChange}
