@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 import BasicButton from './components/buttons/basicButtons/BasicButton';
@@ -7,21 +7,55 @@ import WordCard from './components/wordCard/WordCard';
 
 import useInputValue from './hooks/useInputValue';
 import useModalState from './hooks/useModalState';
-import AddWord from './components/addWord/AddWord';
+import AddOrEditWord from './components/AddOrEditWord/AddOrEditWord';
 import ModalContainer from './components/modal/ModalContainer';
+import RemoveWord from './components/removeWord/RemoveWord';
+import useLocalStorage from './hooks/useLocalStorage';
 
 function App() {
-    const [words, setWords] = useState<string[]>([
-        'apple',
-        'banana',
-        'orange',
-        'strawberry',
-        'melon',
-        'grapes',
-    ]);
+    const [words, setWords] = useState<string[]>([]);
 
     const [filterWord, setFilterWord] = useInputValue();
     const { isOpen, toggleModal, closeModal, openModal } = useModalState();
+    const { setLocalStorage, getLocalStorage } = useLocalStorage('words');
+    const [selected, setSelected] = useState(0);
+    const [actionName, setActionName] = useState('');
+
+    const filteredWords = words.filter((word) => word.includes(filterWord));
+
+    useEffect(() => {
+        const result = getLocalStorage();
+        if (result === null) setWords([]);
+        else setWords(result);
+    }, []);
+
+    const handleAddWordModal = () => {
+        setActionName('add');
+        openModal();
+    };
+
+    const handleUpdateWordModal = (idx?: number) => {
+        setActionName('update');
+        if (idx !== undefined) {
+            setSelected(idx);
+        }
+        openModal();
+    };
+
+    const removeWord = (idx: number) => {
+        const newWords = words.filter(
+            (word: string, index: number) => index !== idx
+        );
+        setWords(newWords);
+        setLocalStorage(newWords);
+    };
+    const handleRemoveWordModal = (idx: number) => {
+        setActionName('remove');
+        if (idx !== undefined) {
+            setSelected(idx);
+        }
+        openModal();
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -31,7 +65,11 @@ function App() {
                         단어 목록
                     </h1>
                     <div className="absolute right-4">
-                        <BasicButton text="추가" onClick={toggleModal} />
+                        <BasicButton
+                            text="추가"
+                            onClick={handleAddWordModal}
+                            action="add"
+                        />
                     </div>
                 </header>
                 <section>
@@ -43,16 +81,66 @@ function App() {
                 </section>
 
                 <main className="font-gowun-bold mt-4 ">
-                    {isOpen ? (
+                    {actionName === 'add' && isOpen ? (
                         <ModalContainer>
-                            <AddWord isOpen={isOpen} closeModal={closeModal} />
+                            <AddOrEditWord
+                                isOpen={isOpen}
+                                closeModal={closeModal}
+                                setWords={setWords}
+                                text="저장"
+                                type="add"
+                                onClick={handleAddWordModal}
+                                words={words}
+                            />
+                        </ModalContainer>
+                    ) : (
+                        ''
+                    )}
+                    {actionName === 'update' && isOpen ? (
+                        <ModalContainer>
+                            <AddOrEditWord
+                                isOpen={isOpen}
+                                closeModal={closeModal}
+                                setWords={setWords}
+                                text="수정"
+                                type="update"
+                                onClick={handleUpdateWordModal}
+                                words={words}
+                                idx={selected}
+                            />
+                        </ModalContainer>
+                    ) : (
+                        ''
+                    )}
+                    {actionName === 'remove' && isOpen ? (
+                        <ModalContainer>
+                            <RemoveWord
+                                word={words[selected]}
+                                isOpen={isOpen}
+                                idx={selected}
+                                removeWord={removeWord}
+                                closeModal={closeModal}
+                                type="update"
+                            />
                         </ModalContainer>
                     ) : (
                         ''
                     )}
                     <ul className="grid grid-cols-3 gap-2.5">
-                        {words.map((word) => {
-                            return <WordCard word={word}></WordCard>;
+                        {filteredWords.map((word, idx) => {
+                            return (
+                                <WordCard
+                                    key={idx}
+                                    word={word}
+                                    idx={idx}
+                                    handleUpdateWordModal={
+                                        handleUpdateWordModal
+                                    }
+                                    handleRemoveWordModal={
+                                        handleRemoveWordModal
+                                    }
+                                />
+                            );
                         })}
                     </ul>
                 </main>
@@ -62,3 +150,5 @@ function App() {
 }
 
 export default App;
+
+// 한글 초성 검색, 문자 set 도 알아보자??

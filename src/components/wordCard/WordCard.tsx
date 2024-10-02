@@ -3,16 +3,37 @@ import { FaTrash } from 'react-icons/fa';
 
 interface WordCardProp {
     word: string;
+    idx: number;
+    handleUpdateWordModal: (idx: number, newWord: string) => void;
+    handleRemoveWordModal: (idx: number) => void;
 }
 
-const WordCard = ({ word }: WordCardProp) => {
+const WordCard = ({
+    word,
+    idx,
+    handleUpdateWordModal,
+    handleRemoveWordModal,
+}: WordCardProp) => {
+    const handleUpdate = () => {
+        handleUpdateWordModal(idx, '');
+    };
+    const handleRemove = () => {
+        handleRemoveWordModal(idx);
+    };
+
     return (
         <li className="w-full h-12 flex items-center justify-center  bg-sky-200 text-lg rounded-md px-3 py-1 cursor-pointer group">
             <p className="w-full flex items-center justify-between p-1">
                 {word}
                 <span className="flex items-center justify-between w-9">
-                    <MdEdit className="text-sm invisible group-hover:visible" />
-                    <FaTrash className="text-sm invisible group-hover:visible" />
+                    <MdEdit
+                        className="text-sm invisible group-hover:visible"
+                        onClick={handleUpdate}
+                    />
+                    <FaTrash
+                        className="text-sm invisible group-hover:visible"
+                        onClick={handleRemove}
+                    />
                 </span>
             </p>
         </li>
