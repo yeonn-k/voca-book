@@ -23,6 +23,8 @@ function App() {
     const [filterWord, setFilterWord] = useInputValue();
     const { isOpen, toggleModal, closeModal, openModal } = useModalState();
 
+    const filteredWords = words.filter((word) => word.includes(filterWord));
+
     return (
         <div className="flex items-center justify-center min-h-screen">
             <div className="max-w-3xl min-w-640 h-full border-solid border-sky-200 border-2 rounded-lg px-8 py-12">
@@ -55,7 +57,7 @@ function App() {
                         ''
                     )}
                     <ul className="grid grid-cols-3 gap-2.5">
-                        {words.map((word) => {
+                        {filteredWords.map((word) => {
                             return <WordCard word={word}></WordCard>;
                         })}
                     </ul>
