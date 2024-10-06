@@ -1,61 +1,62 @@
-import useLocalStorage from '../../hooks/useLocalStorage';
 import BasicButton from '../buttons/basicButtons/BasicButton';
 import InputText from '../form/inputText';
 import useInputValue from '../../hooks/useInputValue';
+import firestoreVocaService, { Word } from '../../service/firestoreVocaService';
+import { useFetchWords } from '../../hooks/useFetchWords';
 
 interface ModalProps {
-    text: string;
     type: string;
-    idx?: number;
+    key: string;
+    docId: string;
     isOpen: boolean;
-    words: string[];
     closeModal: () => void;
-    onClick: (idx?: number) => void;
-    setWords: React.Dispatch<React.SetStateAction<string[]>>;
+    setWords: React.Dispatch<React.SetStateAction<Word[]>>;
+    text: string;
+    onClick: (docId: string) => void;
+    words: Word[];
 }
 
 const AddOrEditWord = ({
-    text,
     type,
+    docId,
     isOpen,
     closeModal,
     setWords,
+    text,
     words,
-    idx,
 }: ModalProps) => {
-    const [newWord, setNewWord] = useInputValue();
-    const { setLocalStorage, getLocalStorage } = useLocalStorage('words');
+    const [newWord, setNewWord] = useInputValue('');
 
-    const handleTheWord = (idx?: number, newWord?: string) => {
-        let updatedWords: string[] = [...words];
-
+    const handleTheWord = async (
+        type: string, // 'add' | 'update' 로 하려고 했는데 인수 전달이 잘 안됩니다..
+        docId?: string,
+        newWord?: string
+    ) => {
         if (type === 'add' && newWord) {
-            updatedWords = [...words, newWord];
-            setWords(updatedWords);
-        } else if (type === 'update' && idx !== undefined && newWord) {
-            updatedWords = words.map((word, index) =>
-                index === idx ? newWord : word
-            );
-            setWords(updatedWords);
+            await firestoreVocaService.createWord(newWord);
         }
 
-        // 로컬 스토리지 업데이트
-        if (updatedWords) {
-            setLocalStorage(updatedWords);
-            closeModal();
+        if (type === 'update' && newWord && docId) {
+            await firestoreVocaService.updateTheWord(newWord, docId);
         }
+        closeModal();
+        useFetchWords(setWords);
     };
+
+    const word = words
+        .filter((word) => word.docId === docId)
+        .map((word) => word.word);
 
     return (
         <div className="bg-white w-96 h-52 rounded-lg py-7 px-5 relative flex justify-center flex-wrap">
             <div className="absolute right-4 ">
-                <BasicButton text="닫기" onClick={closeModal} action="" />
+                <BasicButton text="닫기" onClick={closeModal} />
             </div>
             <h2 className="text-2xl text-sky-500 font-gowun-bold ">
                 {type === 'add'
                     ? '새로운 단어 추가'
-                    : idx
-                      ? `단어 '${words[idx]}' 수정`
+                    : docId
+                      ? `단어 '${word}' 수정`
                       : '단어 수정'}
             </h2>
 
@@ -68,7 +69,7 @@ const AddOrEditWord = ({
                         newWord.trim().length < 1 && !newWord.includes(' ')
                     }
                     onClick={() => {
-                        handleTheWord(idx, newWord);
+                        handleTheWord(type, docId, newWord);
                     }}
                 />
             </div>

@@ -3,22 +3,22 @@ import { FaTrash } from 'react-icons/fa';
 
 interface WordCardProp {
     word: string;
-    idx: number;
-    handleUpdateWordModal: (idx: number, newWord: string) => void;
-    handleRemoveWordModal: (idx: number) => void;
+    docId: string;
+    handleUpdateWordModal: (key: string, newWord: string) => void;
+    handleRemoveWordModal: (key: string) => void;
 }
 
 const WordCard = ({
     word,
-    idx,
+    docId,
     handleUpdateWordModal,
     handleRemoveWordModal,
 }: WordCardProp) => {
     const handleUpdate = () => {
-        handleUpdateWordModal(idx, '');
+        handleUpdateWordModal(docId, '');
     };
     const handleRemove = () => {
-        handleRemoveWordModal(idx);
+        handleRemoveWordModal(docId);
     };
 
     return (

@@ -1,7 +1,7 @@
 interface BasicButtonProps {
     text: string;
     onClick: () => void;
-    action?: string;
+    // action?: string;
     isFull?: boolean;
     color?: string;
     disabled?: boolean;
@@ -9,7 +9,7 @@ interface BasicButtonProps {
 
 const BasicButton = ({
     text,
-    action,
+    // action,
     color,
     onClick,
     isFull,
