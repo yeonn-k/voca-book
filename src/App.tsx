@@ -10,23 +10,27 @@ import useModalState from './hooks/useModalState';
 import AddOrEditWord from './components/AddOrEditWord/AddOrEditWord';
 import ModalContainer from './components/modal/ModalContainer';
 import RemoveWord from './components/removeWord/RemoveWord';
-import useLocalStorage from './hooks/useLocalStorage';
+
+import type { Word } from './service/firestoreVocaService';
+import { useFetchWords } from './hooks/useFetchWords';
 
 function App() {
-    const [words, setWords] = useState<string[]>([]);
+    const [words, setWords] = useState<Word[]>([]);
 
     const [filterWord, setFilterWord] = useInputValue();
     const { isOpen, toggleModal, closeModal, openModal } = useModalState();
-    const { setLocalStorage, getLocalStorage } = useLocalStorage('words');
-    const [selected, setSelected] = useState(0);
+    // const { setLocalStorage, getLocalStorage } = useLocalStorage('words');
+    const [selected, setSelected] = useState<string>('');
     const [actionName, setActionName] = useState('');
 
-    const filteredWords = words.filter((word) => word.includes(filterWord));
+    const filteredWords = words.filter((word) => {
+        return word.word.includes(filterWord);
+    });
+
+    const theWord = words.find((word) => word.docId === selected);
 
     useEffect(() => {
-        const result = getLocalStorage();
-        if (result === null) setWords([]);
-        else setWords(result);
+        useFetchWords(setWords);
     }, []);
 
     const handleAddWordModal = () => {
@@ -34,28 +38,23 @@ function App() {
         openModal();
     };
 
-    const handleUpdateWordModal = (idx?: number) => {
+    const handleUpdateWordModal = (docId: string) => {
         setActionName('update');
-        if (idx !== undefined) {
-            setSelected(idx);
-        }
+        setSelected(docId);
         openModal();
     };
 
-    const removeWord = (idx: number) => {
-        const newWords = words.filter(
-            (word: string, index: number) => index !== idx
-        );
-        setWords(newWords);
-        setLocalStorage(newWords);
-    };
-    const handleRemoveWordModal = (idx: number) => {
+    const handleRemoveWordModal = (docId: string) => {
         setActionName('remove');
-        if (idx !== undefined) {
-            setSelected(idx);
-        }
+        setSelected(docId);
         openModal();
     };
+
+    // const removeWord = async (key: string) => {
+    // const newWords = words.filter((word) => word.docId !== key);
+    // setWords(newWords);
+    // 📍 firebase remove
+    // };
 
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -68,7 +67,7 @@ function App() {
                         <BasicButton
                             text="추가"
                             onClick={handleAddWordModal}
-                            action="add"
+                            // action="add"
                         />
                     </div>
                 </header>
@@ -81,58 +80,56 @@ function App() {
                 </section>
 
                 <main className="font-gowun-bold mt-4 ">
-                    {actionName === 'add' && isOpen ? (
+                    {actionName === 'add' && isOpen && (
                         <ModalContainer>
                             <AddOrEditWord
+                                type="add"
+                                key={selected}
+                                docId={selected}
                                 isOpen={isOpen}
                                 closeModal={closeModal}
                                 setWords={setWords}
                                 text="저장"
-                                type="add"
                                 onClick={handleAddWordModal}
                                 words={words}
                             />
                         </ModalContainer>
-                    ) : (
-                        ''
                     )}
-                    {actionName === 'update' && isOpen ? (
+                    {actionName === 'update' && isOpen && (
                         <ModalContainer>
                             <AddOrEditWord
+                                type="update"
+                                key={selected}
+                                docId={selected}
                                 isOpen={isOpen}
                                 closeModal={closeModal}
                                 setWords={setWords}
                                 text="수정"
-                                type="update"
                                 onClick={handleUpdateWordModal}
                                 words={words}
-                                idx={selected}
                             />
                         </ModalContainer>
-                    ) : (
-                        ''
                     )}
-                    {actionName === 'remove' && isOpen ? (
+                    {actionName === 'remove' && isOpen && (
                         <ModalContainer>
                             <RemoveWord
-                                word={words[selected]}
+                                type="remove"
+                                key={selected}
+                                docId={selected}
                                 isOpen={isOpen}
-                                idx={selected}
-                                removeWord={removeWord}
                                 closeModal={closeModal}
-                                type="update"
+                                setWords={setWords}
+                                word={theWord?.word}
                             />
                         </ModalContainer>
-                    ) : (
-                        ''
                     )}
                     <ul className="grid grid-cols-3 gap-2.5">
-                        {filteredWords.map((word, idx) => {
+                        {filteredWords.map((word: Word) => {
                             return (
                                 <WordCard
-                                    key={idx}
-                                    word={word}
-                                    idx={idx}
+                                    key={word.docId}
+                                    docId={word.docId}
+                                    word={word.word}
                                     handleUpdateWordModal={
                                         handleUpdateWordModal
                                     }
